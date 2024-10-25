@@ -1,0 +1,15 @@
+    - name: Create a virtual environment for the Flask app
+      command: python3 -m venv /opt/flask_venv
+
+    - name: Install Flask and MySQL connector in the virtual environment
+      command: "/opt/flask_venv/bin/pip install flask mysql-connector-python"
+      args:
+        creates: /opt/flask_venv/bin/flask
+
+    - name: Copy source code
+      copy:
+        src: app.py
+        dest: /opt/app.py
+
+    - name: Start web server using Flask in virtual environment
+      shell: FLASK_APP=/opt/app.py nohup /opt/flask_venv/bin/flask run --host=0.0.0.0 --port=5000 &
