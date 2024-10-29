@@ -63,7 +63,7 @@ Contains group-specific variables for the `db_and_web_servers` group, centralizi
    Execute the playbook to deploy the app:
 
    ```bash
-   ansible-playbook -i inventory.txt playbook.yml
+   ansible-playbook playbook.yml -i inventory --ask-vault-pass
    ```
 
    The playbook will:
