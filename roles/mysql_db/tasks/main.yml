@@ -1,55 +1,63 @@
 ---
-    - name: Install MariaDB database (MySQL compatible)
-      apt:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - mariadb-server
-        - libmariadb-dev
+- name: Install MariaDB database (MySQL compatible)
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mariadb-server
+    - libmariadb-dev
 
-    - name: Install Python MySQL library
-      apt:
-        name: python3-pymysql
-        state: present
+- name: Install Python MySQL library
+  apt:
+    name: python3-pymysql
+    state: present
 
-    - name: Start MariaDB service
-      service:
-        name: mariadb
-        state: started
-        enabled: yes
+- name: Start MariaDB service
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
 
-    - name: Create application database
-      command: >
-        mysql -u root -e "CREATE DATABASE IF NOT EXISTS {{ db_name }};"
-      become: yes
-      become_user: root
+- name: Create application database
+  command: >
+    mysql -u root -e "CREATE DATABASE IF NOT EXISTS {{ db_name }};"
+  become: yes
+  become_user: root
 
-    - name: Create database user
-      command: >
-        mysql -u root -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'%' IDENTIFIED BY '{{ db_password }}'; GRANT ALL PRIVILEGES ON {{ db_name }}.* TO '{{ db_user }}'@'%'; FLUSH PRIVILEGES;"
-      become: yes
-      become_user: root
+- name: Create database user
+  command: >
+    mysql -u root -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'%' IDENTIFIED BY '{{ db_password }}'; GRANT ALL PRIVILEGES ON {{ db_name }}.* TO '{{ db_user }}'@'%'; FLUSH PRIVILEGES;"
+  become: yes
+  become_user: root
 
-    - name: Create employees table
-      mysql_query:
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: localhost
-        login_db: "{{ db_name }}"
-        query: "CREATE TABLE IF NOT EXISTS employees (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), position VARCHAR(100), salary DECIMAL(10, 2));"
+- name: Create employees table
+  mysql_query:
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    login_host: localhost
+    login_db: "{{ db_name }}"
+    query: "CREATE TABLE IF NOT EXISTS employees (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), position VARCHAR(100), salary DECIMAL(10, 2));"
 
-    - name: Insert John Doe into employees table
-      mysql_query:
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: localhost
-        login_db: "{{ db_name }}"
-        query: "INSERT INTO employees (name, position, salary) VALUES ('John Doe', 'Engineer', 70000.00);"
+- name: Insert John Doe into employees table
+  mysql_query:
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    login_host: localhost
+    login_db: "{{ db_name }}"
+    query: "INSERT INTO employees (name, position, salary) VALUES ('John Doe', 'Engineer', 70000.00);"
 
-    - name: Insert Jane Smith into employees table
-      mysql_query:
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: localhost
-        login_db: "{{ db_name }}"
-        query: "INSERT INTO employees (name, position, salary) VALUES ('Jane Smith', 'Manager', 90000.00);"
+- name: Insert Jane Smith into employees table
+  mysql_query:
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    login_host: localhost
+    login_db: "{{ db_name }}"
+    query: "INSERT INTO employees (name, position, salary) VALUES ('Jane Smith', 'Manager', 90000.00);"
+
+- name: Configure MariaDB to listen on specific IP address
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 10.10.0.115'
+    state: present
+  notify: Restart MariaDB
